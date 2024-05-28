@@ -8,6 +8,7 @@
                 suffix-icon="el-icon-search"/>
       <el-button type="primary" style="margin-left: 10px">查询</el-button>
       <el-button type="success" @click="restParam">重置</el-button>
+      <el-button @click="connectWallet">连接钱包</el-button>
     </div>
 
     <el-table :data="tokenList"
@@ -134,6 +135,10 @@ export default {
     }
   },
   methods:{
+
+    connectWallet(){
+      console.log("text")
+    },
 
     bidToken(){
       this.$prompt('请输入你的竞价', '提示', {
