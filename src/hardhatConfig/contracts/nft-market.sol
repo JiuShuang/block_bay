@@ -42,7 +42,9 @@ contract Market is IERC721Receiver {
     mapping(address => SellerPreferences) private sellerPreferences;
 
     event Deal(address buyer, address seller, uint256 tokenId, uint256 price);
-    event NewOrder(address seller, uint256 tokenId, uint256 price);
+    event NewNormalOrder(address seller, uint256 tokenId, uint256 price);
+    // add a new kind of event here
+    event NewAuctionOrder(address seller, uint256 tokenId, uint256 startPrice, uint256 startTime, uint256 Endtime);
     event CancelOrder(address seller, uint256 tokenId);
     event ChangePrice(
         address seller,
@@ -190,7 +192,11 @@ contract Market is IERC721Receiver {
     // Add a new function to set preferences, each time before listing a good, the seller should set the preferences
     // you can change your own preference by calling this function again
     function setSellerPreferences(bool _isAuction, uint256 _duration) public {
-        sellerPreferences[msg.sender] = SellerPreferences(_isAuction, _duration);
+        if(_isAuction == false){
+            sellerPreferences[msg.sender] = SellerPreferences(false, 0);
+        }else{
+            sellerPreferences[msg.sender] = SellerPreferences(true, _duration);
+        }
     }
 
     /**
@@ -213,7 +219,11 @@ contract Market is IERC721Receiver {
         uint256 _price = toUint256(_data, 0);
         bool _isAuction = sellerPreferences[_seller].isAuction;
         uint256 _duration = sellerPreferences[_seller].duration;
-        placeOrder(_seller, _tokenId, _isAuction, _price, _duration);
+        if(_isAuction == false){
+            placeNormalOrder(_seller, _tokenId, _price);
+        }else{
+            placeAuctionOrder(_seller, _tokenId, _price, _duration);
+        }
         return MAGIC_ON_ERC721_RECEIVED;  // will be examined by supportsInterface()
     }
 
@@ -233,20 +243,39 @@ contract Market is IERC721Receiver {
         return tempUint;
     }
 
-    // list NFT
-    function placeOrder(
+    // list NFT , just sell directly
+    function placeNormalOrder(
         address _seller,
         uint256 _tokenId,
-        bool _isAuction,
+        uint256 _price
+    ) internal {
+        require(_price > 0, "Market: Price must be greater than zero");
+        orderOfId[_tokenId].seller = _seller;
+        orderOfId[_tokenId].price = _price;
+        orderOfId[_tokenId].tokenId = _tokenId;
+        orderOfId[_tokenId].isAuction = false;
+        orderOfId[_tokenId].startTime = 0;
+        orderOfId[_tokenId].endTime = 0;
+        orderOfId[_tokenId].highestBid = _price;
+        orderOfId[_tokenId].highestBidder = address(0);
+
+        orders.push(orderOfId[_tokenId]);
+        idToOrderIndex[_tokenId] = orders.length - 1;
+        emit NewNormalOrder(_seller, _tokenId, _price);
+    }
+
+    // place the order in the auction
+    function placeAuctionOrder(
+        address _seller,
+        uint256 _tokenId,
         uint256 _price,
         uint256 duration
     ) internal {
         require(_price > 0, "Market: Price must be greater than zero");
-
         orderOfId[_tokenId].seller = _seller;
         orderOfId[_tokenId].price = _price;
         orderOfId[_tokenId].tokenId = _tokenId;
-        orderOfId[_tokenId].isAuction = _isAuction;
+        orderOfId[_tokenId].isAuction = true;
         orderOfId[_tokenId].startTime = block.timestamp;
         orderOfId[_tokenId].endTime = orderOfId[_tokenId].startTime + duration;
         orderOfId[_tokenId].highestBid = _price;
@@ -254,8 +283,7 @@ contract Market is IERC721Receiver {
 
         orders.push(orderOfId[_tokenId]);
         idToOrderIndex[_tokenId] = orders.length - 1;
-
-        emit NewOrder(_seller, _tokenId, _price);
+        emit NewAuctionOrder(_seller, _tokenId, _price, orderOfId[_tokenId].startTime, orderOfId[_tokenId].endTime);
     }
 
     function removeListing(uint256 _tokenId) internal {
