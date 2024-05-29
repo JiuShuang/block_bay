@@ -1,6 +1,6 @@
 How to use these contracts
 ##
-Please read this document patently and carefully if you haven't get to know about the mechanism of these contrcats, this will help you avoid 99% of the problems instead of spending numerous time on those low-level mistakes and annoying others.
+Please read this document patiently and carefully if you haven't got to know about the mechanism of these contrcats, this will help you avoid 99% of the problems instead of spending numerous time on those low-level mistakes and annoying others.
 ##
 Please make sure the settings of Remix IDE should be the following:
 compiler: 0.8.20
