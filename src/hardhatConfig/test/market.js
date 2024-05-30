@@ -73,9 +73,11 @@ describe("Market", function(){
         const price = "0x0000000000000000000000000000000000000000000000000001c6bf52634000";
         expect(await myNft.connect(account1)['safeTransferFrom(address,address,uint256,bytes)'](account1.address, market.target, 0, price)).to.emit(market, "NewAuctionOrder");
         expect(await market.changePrice(0, "9000000000000000000000")).to.emit(market, "ChangePrice");
+
         // then try auction
         expect(await market.connect(account2).auction(0, { value: "9000000000000000000001" })).to.emit(market, "SomeBidden");
         expect(await market.connect(account3).auction(0, { value: "9000000000000000000002" })).to.emit(market, "SomeBidden");
+
         // try the highest bid
         const order = await market.orderOfId(0);
         expect(order.highestBid).to.equal("9000000000000000000002");
@@ -92,11 +94,14 @@ describe("Market", function(){
     })
 
     it('account1 can unlist one nft from market', async function() {
+
         const price = "0x0000000000000000000000000000000000000000000000000001c6bf52634000";
         await market.connect(account1).setSellerPreferences(false, 0);
         expect(await myNft['safeTransferFrom(address,address,uint256,bytes)'](account1.address, market.target, 0, price)).to.emit(market, "NewOrder");
         expect(await myNft['safeTransferFrom(address,address,uint256,bytes)'](account1.address, market.target, 1, price)).to.emit(market, "NewOrder");
+
         expect(await market.cancelOrder(0)).to.emit(market, "CancelOrder");
+
         expect(await market.getOrderLength()).to.equal(1);
         expect(await market.isListed(0)).to.equal(false);
         expect((await market.getMyNFTs()).length).to.equal(1);

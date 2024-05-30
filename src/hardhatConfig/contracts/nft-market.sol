@@ -206,11 +206,11 @@ contract Market is IERC721Receiver {
      * @param _tokenId the good id to list
      * @param _data contains the pricing data as the first 32 bytes
      */
-     // receive the function safeTransferFrom in erc721-nft, must has the arguement 'data' to  correspondence '_data'
+     // receive the function safeTransferFrom in erc721-nft.json, must has the arguement 'data' to  correspondence '_data'
      // only contract with function Received() can receive NFTs from other contracts
      // hook
     function onERC721Received(
-        address _operator, // address called erc721-nft-safeTransferFrom
+        address _operator, // address called erc721-nft.json-safeTransferFrom
         address _seller,   // owner of NFT
         uint256 _tokenId,  
         bytes calldata _data

@@ -136,36 +136,12 @@
 </template>
 
 <script>
+import {myNFTs, safeMint} from '@/utils/goods_util'
 export default {
   name: "GoodsPage",
   data() {
     return {
-      tokenList:[
-        {
-          tokenID: '2016-05-02',
-          owner: '王小虎',
-          tokenName: '上海市普陀区金沙江路 1518 弄',
-          tokenPrice:"100"
-        },
-        {
-          tokenID: '2016-05-02',
-          owner: '王小虎',
-          tokenName: '上海市普陀区金沙江路 1518 弄',
-          tokenPrice:"100"
-        },
-        {
-          tokenID: '2016-05-02',
-          owner: '王小虎',
-          tokenName: '上海市普陀区金沙江路 1518 弄',
-          tokenPrice:"100"
-        },
-        {
-          tokenID: '2016-05-02',
-          owner: '王小虎',
-          tokenName: '上海市普陀区金沙江路 1518 弄',
-          tokenPrice:"100"
-        },
-      ],
+      tokenList:[],
       tokenInfo:{
         tokenImage:"https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg",
         tokenID: '2016-05-02',
@@ -194,6 +170,7 @@ export default {
       createTokenDialog:false,
       direction:'rtl',
       tokenStatue:"",
+      account:"",
       tokenStatueType:[{
         value: '未上架',
         label: '未上架'
@@ -259,6 +236,61 @@ export default {
       });
     },
 
+    createTokenInfo(){
+      this.createTokenDialog=true
+    },
+
+    //创建NFT
+    async createToken(){
+      // const tokenResult=await uploadJSONToIPFS(this.tokenForm)
+      // const tokenCid=tokenResult.cid.toString()
+      // console.log(tokenResult)
+      // console.log(tokenCid)
+      try {
+        await safeMint(this.account, this.tokenForm.tokenName)
+        this.$notify({
+          title: '创建NFT',
+          message: '成功创建NFT'+this.tokenForm.tokenName,
+          type: 'success'
+        });
+        this.closeCreate()
+        this.getMyNFTs()
+      }catch (e){
+        this.$notify({
+          title: '创建NFT',
+          message: '创建NFT失败'+e,
+          type: 'error'
+        });
+      }
+
+    },
+
+    //查询自己所有的NFT
+    getMyNFTs(){
+      myNFTs(this.account).then((res)=>{
+        if (res!==null){
+          for(let i=0; i<res.length; i++){
+            console.log(res[i])
+            this.tokenList.push(
+                {
+                  tokenID: '2016-05-02',
+                  owner: '王小虎',
+                  tokenName: res[i],
+                  tokenPrice:"100"
+                },
+            )
+          }
+        }
+      })
+    },
+
+    closeCreate(){
+      this.createTokenDialog=false
+    },
+    openTokenInfo(){
+      this.tokenInfoDrawer=true
+    },
+
     handleBefore(file) {
       const isLt20M = file.size / 1024 / 1024 /1024 < 2;
       if (file.type!=='image/png' && file.type!=='image/jpg' && file.type!=='image/jpeg') {
@@ -274,23 +306,6 @@ export default {
     handleSuccess(res){
       console.log(res)
     },
-
-    closeCreate(){
-      this.createTokenDialog=false
-    },
-
-    createTokenInfo(){
-      this.createTokenDialog=true
-    },
-
-    createToken(){
-      this.closeCreate()
-    },
-
-    openTokenInfo(){
-      this.tokenInfoDrawer=true
-    },
-
     handleSizeChange(val) {
       console.log(`每页 ${val} 条`);
       this.pageSize=val
@@ -307,7 +322,9 @@ export default {
     },
 
   },
-  beforeMount() {
+  created() {
+    this.account=localStorage.getItem("account")
+    this.getMyNFTs()
   }
 
 }
