@@ -1,0 +1,2 @@
+"use strict";(self["webpackChunkblock_bay"]=self["webpackChunkblock_bay"]||[]).push([[404],{4404:function(n,e,r){r.r(e),r.d(e,{default:function(){return f}});var u=function(){var n=this;n._self._c;return n._m(0)},t=[function(){var n=this,e=n._self._c;return e("div",[e("span",[n._v("gg")])])}],a={name:"PageError"},c=a,l=r(1001),s=(0,l.Z)(c,u,t,!1,null,"35e7d6ca",null),f=s.exports}}]);
+//# sourceMappingURL=404.62865eb7.js.map

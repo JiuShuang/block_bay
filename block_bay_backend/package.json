@@ -1,0 +1,19 @@
+{
+  "name": "block_bay_backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "run": "node src/express_util.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "kubo-rpc-client": "^4.1.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}

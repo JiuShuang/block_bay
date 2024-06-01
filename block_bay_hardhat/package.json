@@ -1,0 +1,10 @@
+{
+  "name": "block_bay_hardhat",
+  "scripts": {
+    "hardhat node": "npx hardhat node"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.4"
+  }
+}
