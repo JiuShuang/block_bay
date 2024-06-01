@@ -3,7 +3,7 @@ import erc721Abi from '../contractAbi/erc721-nft.json'
 import config from '../config.json'
 import marketAbi from "@/contractAbi/market.json";
 
-let provider=new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545")
+let provider= new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545")
 
 const erc721Address =config.NFTAddress
 const erc721Contract =new ethers.Contract(erc721Address,erc721Abi,provider.getSigner())
@@ -16,29 +16,44 @@ export async function safeMint(address,tokenUrl){
     console.log(result)
 }
 
+export async function cancelNFT(tokenID){
+    return await marketContract.cancelOrder(tokenID)
+}
+
 export async function myNFTs(address){
     let nftBalance=await erc721Contract.balanceOf(address);
+    let nftInMarketOrAuction=await marketContract.getMyNFTs()
+    let tokenList=[]
+    let tokenIndexList=[]
+    let isListedList=[]
     if(nftBalance.toNumber()>0){
-        let tokenList=[]
-        let tokenIndexList=[]
-        let isListedList=[]
         for(let i=0; i<nftBalance.toNumber(); i++)
         {
             let tokenIndex=await erc721Contract.tokenOfOwnerByIndex(address,i)
             const tokenURI=await erc721Contract.tokenURI(tokenIndex.toNumber())
             const isListed=await marketContract.isListed(tokenIndex.toString())
-            console.log(isListed)
             isListedList.push(isListed.toString())
             tokenIndexList.push(tokenIndex.toNumber())
             tokenList.push(tokenURI)
         }
-        return {tokenIndexList, tokenList,isListedList}
-    }else {
-        return null
     }
+    if(nftInMarketOrAuction.length>0){
+        for(let i=0; i<nftInMarketOrAuction.length; i++)
+        {
+            const tokenURI=await erc721Contract.tokenURI(nftInMarketOrAuction[i][6].toNumber())
+            const isListed=await marketContract.isListed(nftInMarketOrAuction[i][6].toString())
+            console.log(isListed)
+            isListedList.push(isListed.toString())
+            tokenIndexList.push(nftInMarketOrAuction[i][6].toNumber())
+            tokenList.push(tokenURI)
+        }
+    }
+    console.log(tokenList)
+    return {tokenIndexList, tokenList,isListedList}
 }
 
 export async function addNFTtoMarket(address,tokenID,tokenPrice){
+
     const isAuction=await marketContract.setSellerPreferences(false,0)
     console.log(isAuction)
     // eslint-disable-next-line no-undef

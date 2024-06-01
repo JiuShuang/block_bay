@@ -21,7 +21,7 @@
       </el-table-column>
       <el-table-column prop="seller" label="Seller">
       </el-table-column>
-      <el-table-column prop="tokenPrice" label="Token Price">
+      <el-table-column prop="highestBid" label="Highest Bid">
       </el-table-column>
       <el-table-column prop="operate" label="操作">
         <template slot-scope="scope">
@@ -59,9 +59,9 @@
         </el-descriptions-item>
         <el-descriptions-item>
           <template slot="label">
-            Token Price
+            Highest Bid
           </template>
-          {{ this.tokenInfo.tokenPrice }}
+          {{ this.tokenInfo.highestBid }}
         </el-descriptions-item>
         <el-descriptions-item>
           <template slot="label">
@@ -89,7 +89,7 @@ export default {
         tokenImage:"",
         seller: '',
         tokenName: '',
-        tokenPrice:"",
+        highestBid:"",
         tokenDesc:""
       },
       searchTokenID:"",
@@ -103,30 +103,29 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
       }).then(async ({value}) => {
-        await auctionNFT(tokenID, value)
+        const result=await auctionNFT(tokenID, value)
+        console.log(result)
         this.$message({
           type: 'success',
           message: '竞拍成功'
         });
-      }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '竞拍失败'
-        });
-      });
+      })
     },
 
     getAllNFTs(){
       this.tokenList=[]
       getAllNFTsInAuction().then((res)=>{
+        console.log(res)
         if (res!==null){
           let nftURI=res.nftList
           let sellerList=res.sellerList
           let tokenIDList=res.tokenIDList
+          let highestBid=res.highestBid
           for(let i=0; i<nftURI.length; i++){
             this.$axios.get(nftURI[i]).then((res)=>{
               res.data.seller=sellerList[i]
               res.data.tokenID=tokenIDList[i]
+              res.data.highestBid=highestBid[i]
               this.tokenList.push(res.data)
             })
           }
@@ -140,7 +139,7 @@ export default {
       this.tokenInfo.seller=tokenInfo.seller
       this.tokenInfo.tokenImage=tokenInfo.tokenImage
       this.tokenInfo.tokenName=tokenInfo.tokenName
-      this.tokenInfo.tokenPrice=tokenInfo.tokenPrice
+      this.tokenInfo.highestBid=tokenInfo.highestBid
       this.tokenInfo.tokenDesc=tokenInfo.tokenDesc
       this.tokenInfoDrawer=true
     },

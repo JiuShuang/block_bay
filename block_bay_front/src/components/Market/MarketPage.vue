@@ -25,7 +25,7 @@
       </el-table-column>
       <el-table-column prop="operate" label="操作">
         <template slot-scope="scope">
-          <el-button type="danger" size="small" @click="buyToken(scope.row.tokenID)" style="margin-right: 10px">购买</el-button>
+          <el-button type="danger" size="small" @click="buyToken(scope.row.tokenID,scope.row.tokenPrice)" style="margin-right: 10px">购买</el-button>
           <el-button type="primary" size="small" @click="openTokenInfo(scope.row)" style="margin-right: 10px">详情</el-button>
         </template>
       </el-table-column>
@@ -101,14 +101,16 @@ export default {
     }
   },
   methods:{
-    buyToken(tokenID){
+    buyToken(tokenID,tokenPrice){
       this.$confirm('确定购买该Token吗', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(async () => {
-        await buyNFT(tokenID)
-        this.getAllNFTs()
+        await buyNFT(tokenID,tokenPrice).then((res)=>{
+          console.log(res)
+          this.getAllNFTs()
+        })
         this.$message({
           type: 'success',
           message: '购买Token成功!'

@@ -31,15 +31,15 @@
       </el-table-column>
       <el-table-column prop="isListed" label="Statue">
         <template slot-scope="scope">
-          <el-tag type="danger" v-if="!scope.row.isListed">上架</el-tag>
-          <el-tag type="success" v-if="scope.row.isListed">未上架</el-tag>
+          <el-tag type="danger" v-if="scope.row.isListed==='true'">上架</el-tag>
+          <el-tag type="success" v-if="scope.row.isListed==='false'">未上架</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="tokenPrice" label="TokenPrice">
       </el-table-column>
       <el-table-column prop="operate" label="操作">
         <template slot-scope="scope">
-          <el-button type="success" size="small" @click="offShelf" style="margin-right: 10px">下架</el-button>
+          <el-button type="success" size="small" @click="offShelf(scope.row.tokenID)" style="margin-right: 10px">下架</el-button>
           <el-button type="primary" size="small" @click="openTokenInfo(scope.row)" style="margin-right: 10px">详情</el-button>
         </template>
       </el-table-column>
@@ -67,11 +67,12 @@
         </el-descriptions-item>
         <el-descriptions-item>
           <template slot="label">
-            Statue
+            Token Statue
           </template>
-            <el-tag type="danger" v-if="this.tokenList.isListed">上架</el-tag>
-            <el-tag type="success" v-if="!this.tokenList.isListed">未上架</el-tag>
+          <el-tag type="danger" v-if="this.tokenInfo.isListed==='true'">上架</el-tag>
+          <el-tag type="success" v-if="this.tokenInfo.isListed==='false'">未上架</el-tag>
         </el-descriptions-item>
+
         <el-descriptions-item>
           <template slot="label">
             Token Price
@@ -130,7 +131,7 @@
 </template>
 
 <script>
-import {addNFTtoAuction, addNFTtoMarket, myNFTs, safeMint,} from '@/utils/goods_util'
+import {addNFTtoAuction, addNFTtoMarket, cancelNFT, myNFTs, safeMint,} from '@/utils/goods_util'
 export default {
   name: "GoodsPage",
   data() {
@@ -173,12 +174,14 @@ export default {
     }
   },
   methods:{
-    offShelf(){
+    offShelf(tokenID){
       this.$confirm('确定下架该Token吗', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
+      }).then(async () => {
+        await cancelNFT(tokenID)
+        this.getMyNFTs()
         this.$message({
           type: 'success',
           message: '下架Token成功!'
@@ -196,7 +199,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(async () => {
-        await addNFTtoMarket(this.account, this.tokenInfo.tokenID, this.tokenInfo.tokenPrice)
+        await addNFTtoMarket(localStorage.getItem("account"), this.tokenInfo.tokenID, this.tokenInfo.tokenPrice)
         this.tokenInfoDrawer=false
         this.getMyNFTs()
         this.$message({
@@ -211,7 +214,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(async () => {
-        await addNFTtoAuction(this.account, this.tokenInfo.tokenID, this.tokenInfo.tokenPrice)
+        await addNFTtoAuction(localStorage.getItem("account"), this.tokenInfo.tokenID, this.tokenInfo.tokenPrice)
         this.tokenInfoDrawer = false
         this.getMyNFTs()
         this.$message({
@@ -236,14 +239,16 @@ export default {
         this.$axios.post("http://localhost:3000/upload",this.tokenForm).then(async (res) => {
           console.log(res.data)
           const tokenCid = res.data.tokenCid
-          await safeMint(this.account,tokenCid)
-          this.$notify({
-            title: '创建NFT',
-            message: '成功创建NFT' + this.tokenForm.tokenName,
-            type: 'success'
-          });
-          this.closeCreate()
-          this.getMyNFTs()
+          await safeMint(localStorage.getItem("account"),tokenCid).then((res)=>{
+            console.log(res)
+            this.$notify({
+              title: '创建NFT',
+              message: '成功创建NFT' + this.tokenForm.tokenName,
+              type: 'success'
+            });
+            this.closeCreate()
+            this.getMyNFTs()
+          })
         })
       }catch (e){
         this.$notify({
@@ -258,7 +263,7 @@ export default {
     //查询自己所有的NFT
     getMyNFTs(){
       this.tokenList=[]
-      myNFTs(this.account).then((res)=>{
+      myNFTs(localStorage.getItem("account")).then((res)=>{
         if (res!==null){
           let tokenIndexList=res.tokenIndexList
           let isListed=res.isListedList
@@ -286,6 +291,7 @@ export default {
       this.tokenInfo.tokenPrice=tokenInfo.tokenPrice
       this.tokenInfo.tokenDesc=tokenInfo.tokenDesc
       this.tokenInfoDrawer=true
+      console.log(this.tokenInfo)
     },
 
     handleBefore(file) {
@@ -311,7 +317,6 @@ export default {
 
   },
   created() {
-    this.account=localStorage.getItem("account")
     this.getMyNFTs()
   }
 

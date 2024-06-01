@@ -85,7 +85,10 @@
             },
         },
         mounted() {
-
+          window.ethereum.on('accountsChanged', (accounts) => {
+            localStorage.setItem("account",accounts[0])
+            this.account=accounts[0]
+          });
         },
     }
 </script>
