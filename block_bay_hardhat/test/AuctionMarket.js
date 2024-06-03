@@ -8,20 +8,19 @@ describe("Market", function(){
         // if don't use connect(), account1(the first argument) will always be used as the arguments for functions
         [account1, account2, account3] = await ethers.getSigners();
         //实例化
-        const USDT = await ethers.getContractFactory("cUSTD");
+        const USDT = await ethers.getContractFactory("currency");
         //deploy
         usdt = await USDT.deploy();
 
-        const MyNFT = await ethers.getContractFactory("MyNFT");
+        const MyNFT = await ethers.getContractFactory("theNFT");
         myNft = await MyNFT.deploy();
-        const Market = await ethers.getContractFactory("Market");
+        const Market = await ethers.getContractFactory("AuctionMarket");
         market = await Market.deploy(usdt.target, myNft.target);
 
         baseUri = "test/"
         // mint 2 NFTs to account1, internal function
         await myNft.safeMint(account1.address, baseUri + "0");
         await myNft.safeMint(account1.address, baseUri + "1");
-        //approve
 
         //transfer usdt to account2
         await usdt.transfer(account2.address, "10000000000000000000000");
@@ -73,11 +72,9 @@ describe("Market", function(){
         const price = "0x0000000000000000000000000000000000000000000000000001c6bf52634000";
         expect(await myNft.connect(account1)['safeTransferFrom(address,address,uint256,bytes)'](account1.address, market.target, 0, price)).to.emit(market, "NewAuctionOrder");
         expect(await market.changePrice(0, "9000000000000000000000")).to.emit(market, "ChangePrice");
-
         // then try auction
         expect(await market.connect(account2).auction(0, { value: "9000000000000000000001" })).to.emit(market, "SomeBidden");
         expect(await market.connect(account3).auction(0, { value: "9000000000000000000002" })).to.emit(market, "SomeBidden");
-
         // try the highest bid
         const order = await market.orderOfId(0);
         expect(order.highestBid).to.equal("9000000000000000000002");
@@ -94,14 +91,11 @@ describe("Market", function(){
     })
 
     it('account1 can unlist one nft from market', async function() {
-
         const price = "0x0000000000000000000000000000000000000000000000000001c6bf52634000";
         await market.connect(account1).setSellerPreferences(false, 0);
         expect(await myNft['safeTransferFrom(address,address,uint256,bytes)'](account1.address, market.target, 0, price)).to.emit(market, "NewOrder");
         expect(await myNft['safeTransferFrom(address,address,uint256,bytes)'](account1.address, market.target, 1, price)).to.emit(market, "NewOrder");
-
         expect(await market.cancelOrder(0)).to.emit(market, "CancelOrder");
-
         expect(await market.getOrderLength()).to.equal(1);
         expect(await market.isListed(0)).to.equal(false);
         expect((await market.getMyNFTs()).length).to.equal(1);
