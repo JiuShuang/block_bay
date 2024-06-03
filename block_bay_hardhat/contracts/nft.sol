@@ -7,12 +7,12 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 // this is the NFT seller contract
-contract MyNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
+contract theNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
     // initial value is zero 
     uint256 private _nextTokenId;
 
     constructor() 
-    ERC721("MyNFT", "NFT") 
+    ERC721("theNFT", "NFT") 
     Ownable(msg.sender) {}
 
     function safeMint(address to, string memory uri) public onlyOwner {

@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/interfaces/IERC20.sol";
 /**
  * @title NFTMarket contract that allows atomic swaps of ERC20 and ERC721
  */
-contract Market is IERC721Receiver {
+contract AuctionMarket is IERC721Receiver {
     IERC20 public erc20;
     IERC721 public erc721;
 
@@ -58,11 +58,11 @@ contract Market is IERC721Receiver {
     constructor(IERC20 _erc20, IERC721 _erc721) {
         require(
             address(_erc20) != address(0),
-            "Market: IERC20 contract address must be non-null"
+            "AuctionMarket: IERC20 contract address must be non-null"
         );
         require(
             address(_erc721) != address(0),
-            "Market: IERC721 contract address must be non-null"
+            "AuctionMarket: IERC721 contract address must be non-null"
         );
         erc20 = _erc20;
         erc721 = _erc721;
@@ -70,7 +70,7 @@ contract Market is IERC721Receiver {
 
     //you can bid for several times until the time ends
     function auction(uint256 _tokenID)external payable{
-        require(isListed(_tokenID), "Market: Token ID is not listed");
+        require(isListed(_tokenID), "AuctionMarket: Token ID is not listed");
         require(orderOfId[_tokenID].isAuction == true, "this one is not on auction");
         require(orderOfId[_tokenID].startTime < block.timestamp, "time not valid");
         require(orderOfId[_tokenID].endTime > block.timestamp, "time not valid");
@@ -89,7 +89,7 @@ contract Market is IERC721Receiver {
     
     //this can only be called after the bid ends, any one can call this function
     function finishAuction(uint256 _tokenID)external {
-        require(isListed(_tokenID), "Market: Token ID is not listed");
+        require(isListed(_tokenID), "AuctionMarket: Token ID is not listed");
         require(orderOfId[_tokenID].isAuction == true, "this one is not on auction");
         require(orderOfId[_tokenID].endTime <= block.timestamp, "time not valid");
         // if someone bids
@@ -111,7 +111,7 @@ contract Market is IERC721Receiver {
     }
 
     function buy(uint256 _tokenId) external {
-        require(isListed(_tokenId), "Market: Token ID is not listed");
+        require(isListed(_tokenId), "AuctionMarket: Token ID is not listed");
         require(orderOfId[_tokenId].isAuction == false, "this one is on auction");
 
         // id => order's seller
@@ -121,7 +121,7 @@ contract Market is IERC721Receiver {
 
         require(
             erc20.transferFrom(buyer, seller, price),
-            "Market: ERC20 transfer not successful"
+            "AuctionMarket: ERC20 transfer not successful"
         );
         erc721.safeTransferFrom(address(this), buyer, _tokenId);
         //remove the NFT from Order[]
@@ -131,10 +131,10 @@ contract Market is IERC721Receiver {
     }
 
     function cancelOrder(uint256 _tokenId) external {
-        require(isListed(_tokenId), "Market: Token ID is not listed");
+        require(isListed(_tokenId), "AuctionMarket: Token ID is not listed");
 
         address seller = orderOfId[_tokenId].seller;
-        require(seller == msg.sender, "Market: Sender is not seller");
+        require(seller == msg.sender, "AuctionMarket: Sender is not seller");
         //
         erc721.safeTransferFrom(address(this), seller, _tokenId);
         removeListing(_tokenId);
@@ -143,9 +143,9 @@ contract Market is IERC721Receiver {
     }
 
     function changePrice(uint256 _tokenId, uint256 _price) external {
-        require(isListed(_tokenId), "Market: Token ID is not listed");
+        require(isListed(_tokenId), "AuctionbMarket: Token ID is not listed");
         address seller = orderOfId[_tokenId].seller;
-        require(seller == msg.sender, "Market: Sender is not seller");
+        require(seller == msg.sender, "AuctionMarket: Sender is not seller");
         //change the price in mapping: orderOfId 
         uint256 previousPrice = orderOfId[_tokenId].price;
         orderOfId[_tokenId].price = _price;
@@ -206,16 +206,16 @@ contract Market is IERC721Receiver {
      * @param _tokenId the good id to list
      * @param _data contains the pricing data as the first 32 bytes
      */
-     // receive the function safeTransferFrom in erc721-nft.json, must has the arguement 'data' to  correspondence '_data'
+     // receive the function safeTransferFrom in erc721-nft, must has the arguement 'data' to  correspondence '_data'
      // only contract with function Received() can receive NFTs from other contracts
      // hook
     function onERC721Received(
-        address _operator, // address called erc721-nft.json-safeTransferFrom
+        address _operator, // address called erc721-nft-safeTransferFrom
         address _seller,   // owner of NFT
         uint256 _tokenId,  
         bytes calldata _data
     ) public override returns (bytes4) {
-        require(_operator == _seller, "Market: Seller must be operator");
+        require(_operator == _seller, "AuctionMarket: Seller must be operator");
         uint256 _price = toUint256(_data, 0);
         bool _isAuction = sellerPreferences[_seller].isAuction;
         uint256 _duration = sellerPreferences[_seller].duration;
@@ -232,8 +232,8 @@ contract Market is IERC721Receiver {
         bytes memory _bytes,
         uint256 _start
     ) public pure returns (uint256) {
-        require(_start + 32 >= _start, "Market: toUint256_overflow");
-        require(_bytes.length >= _start + 32, "Market: toUint256_outOfBounds");
+        require(_start + 32 >= _start, "AuctionMarket: toUint256_overflow");
+        require(_bytes.length >= _start + 32, "AuctionMarket: toUint256_outOfBounds");
         uint256 tempUint;
 
         assembly {
@@ -249,7 +249,7 @@ contract Market is IERC721Receiver {
         uint256 _tokenId,
         uint256 _price
     ) internal {
-        require(_price > 0, "Market: Price must be greater than zero");
+        require(_price > 0, "AuctionMarket: Price must be greater than zero");
         orderOfId[_tokenId].seller = _seller;
         orderOfId[_tokenId].price = _price;
         orderOfId[_tokenId].tokenId = _tokenId;
@@ -271,7 +271,7 @@ contract Market is IERC721Receiver {
         uint256 _price,
         uint256 duration
     ) internal {
-        require(_price > 0, "Market: Price must be greater than zero");
+        require(_price > 0, "AuctionMarket: Price must be greater than zero");
         orderOfId[_tokenId].seller = _seller;
         orderOfId[_tokenId].price = _price;
         orderOfId[_tokenId].tokenId = _tokenId;
