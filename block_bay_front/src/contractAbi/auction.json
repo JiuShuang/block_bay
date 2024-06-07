@@ -326,7 +326,7 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct Market.Order[]",
+        "internalType": "struct AuctionMarket.Order[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -381,7 +381,7 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct Market.Order[]",
+        "internalType": "struct AuctionMarket.Order[]",
         "name": "",
         "type": "tuple[]"
       }

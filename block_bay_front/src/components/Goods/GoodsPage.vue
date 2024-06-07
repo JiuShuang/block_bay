@@ -291,7 +291,6 @@ export default {
       this.tokenInfo.tokenPrice=tokenInfo.tokenPrice
       this.tokenInfo.tokenDesc=tokenInfo.tokenDesc
       this.tokenInfoDrawer=true
-      console.log(this.tokenInfo)
     },
 
     handleBefore(file) {
